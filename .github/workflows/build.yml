@@ -61,8 +61,8 @@ jobs:
           CGO_LDFLAGS="-Wl,-z,max-page-size=16384" gomobile bind \
             -target=android/arm64 \
             -androidapi 23 \
-            -tags "with_quic,with_wireguard,with_utls,with_gvisor" \
-            -ldflags "-extldflags=-Wl,-z,max-page-size=16384" \
+            -tags "with_quic,with_wireguard,with_utls,with_gvisor,badlinkname,tfogo_checklinkname0" \
+            -ldflags "-extldflags=-Wl,-z,max-page-size=16384 -checklinkname=0" \
             -o "$GITHUB_WORKSPACE/TMessagesProj/libs/libbox.aar" \
             ./experimental/libbox
           ls -lh "$GITHUB_WORKSPACE/TMessagesProj/libs/libbox.aar"
