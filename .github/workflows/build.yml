@@ -56,6 +56,8 @@ jobs:
           gomobile init
           git clone --depth 1 --branch v1.14.4 https://github.com/SagerNet/sing-box.git /tmp/sing-box
           cd /tmp/sing-box
+          # Newer gomobile requires x/mobile to be part of the module graph.
+          go get -tool golang.org/x/mobile/cmd/gobind
           CGO_LDFLAGS="-Wl,-z,max-page-size=16384" gomobile bind \
             -target=android/arm64 \
             -androidapi 23 \
