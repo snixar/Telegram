@@ -49,6 +49,7 @@ import org.telegram.messenger.Utilities;
 import org.telegram.utils.proxy.WebProxyConnectionTester;
 import org.telegram.utils.proxy.WebProxyTransport;
 import org.telegram.utils.proxy.ProxySettings;
+import org.telegram.messenger.singbox.SingBoxCore;
 import org.telegram.ui.Components.VideoPlayer;
 import org.telegram.ui.LoginActivity;
 
@@ -677,6 +678,11 @@ public class ConnectionsManager extends BaseController {
                 int localPort = WebProxyTransport.start(proxySettings.getAddress(), proxySettings.getSecret());
                 native_setProxySettings(currentAccount, "127.0.0.1", localPort != 0 ? localPort : 9, "", "",
                         proxySettings.getSecret());
+            } else if (proxySettings.getType() == ProxySettings.Type.SINGBOX) {
+                int localPort = SingBoxCore.ensureRunning(proxySettings.getSecret());
+                if (localPort != 0) {
+                    native_setProxySettings(currentAccount, "127.0.0.1", localPort, "", "", "");
+                }
             } else {
                 native_setProxySettings(currentAccount, proxySettings.getAddress(), proxySettings.getPort(),
                         proxySettings.getUser(), proxySettings.getPassword(), proxySettings.getSecret());
@@ -780,6 +786,14 @@ public class ConnectionsManager extends BaseController {
         if (settings.getType() == ProxySettings.Type.WEB) {
             WebProxyConnectionTester.getInstance().checkProxy(settings, requestTimeDelegate, this::checkWebProxyInternal);
             return 0;
+        }
+        if (settings.getType() == ProxySettings.Type.SINGBOX) {
+            final int localPort = SingBoxCore.getActivePort(settings.getSecret());
+            if (localPort == 0) {
+                requestTimeDelegate.run(-1);
+                return 0;
+            }
+            return native_checkProxy(currentAccount, "127.0.0.1", localPort, "", "", "", requestTimeDelegate);
         }
 
         return native_checkProxy(currentAccount, settings.getAddress(), settings.getPort(), settings.getUser(), settings.getPassword(), settings.getSecret(), requestTimeDelegate);
@@ -982,14 +996,25 @@ public class ConnectionsManager extends BaseController {
         KeepAliveJob.startJob();
     }
 
+    /**
+     * Drops the native proxy without touching stored settings. Used when a proxy backend failed to
+     * start, so connections do not keep hitting a dead loopback port.
+     */
+    public static void resetProxyToDirect() {
+        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+            native_setProxySettings(a, "", 1080, "", "", "");
+        }
+    }
+
     public static void setProxySettings(boolean enabled, ProxySettings settings) {
         String address = "";
         int port = 0;
         String username = "";
         String password = "";
         String secret = "";
+        boolean applied = enabled && settings != null && settings.isValid();
 
-        if (enabled && settings != null && settings.isValid()) {
+        if (applied) {
             address = settings.getAddress();
             port = settings.getPort();
             username = settings.getUser();
@@ -1002,15 +1027,32 @@ public class ConnectionsManager extends BaseController {
                 port = localPort != 0 ? localPort : 9;
                 username = "";
                 password = "";
+                SingBoxCore.stop();
+            } else if (settings.getType() == ProxySettings.Type.SINGBOX) {
+                int localPort = SingBoxCore.ensureRunning(settings.getSecret());
+                if (localPort != 0) {
+                    address = "127.0.0.1";
+                    port = localPort;
+                    username = "";
+                    password = "";
+                    secret = "";
+                } else {
+                    // Unsupported ABI or no free port: fall back to a direct connection instead of
+                    // pointing tgnet at a dead local port.
+                    applied = false;
+                }
+                WebProxyTransport.stop();
             } else {
                 WebProxyTransport.stop();
+                SingBoxCore.stop();
             }
         } else {
             WebProxyTransport.stop();
+            SingBoxCore.stop();
         }
 
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
-            if (enabled && settings != null && settings.isValid()) {
+            if (applied) {
                 native_setProxySettings(a, address, port, username, password, secret);
             } else {
                 native_setProxySettings(a, "", 1080, "", "", "");

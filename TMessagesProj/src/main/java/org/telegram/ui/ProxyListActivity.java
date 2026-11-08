@@ -50,6 +50,8 @@ import org.telegram.messenger.ProxyRotationController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.utils.proxy.ProxySettings;
+import org.telegram.messenger.singbox.SingBoxConfig;
+import org.telegram.messenger.singbox.SingBoxCore;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.SimpleActionBarMenu;
@@ -193,9 +195,13 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
         }
 
         public void setProxy(SharedConfig.ProxyInfo proxyInfo) {
-            textView.setText(proxyInfo.settings.getType() == ProxySettings.Type.WEB
-                    ? proxyInfo.settings.getAddress() + " (WEB)"
-                    : proxyInfo.settings.getAddress() + ":" + proxyInfo.settings.getPort());
+            if (proxyInfo.settings.getType() == ProxySettings.Type.SINGBOX) {
+                textView.setText(SingBoxConfig.summarize(proxyInfo.settings.getSecret()));
+            } else if (proxyInfo.settings.getType() == ProxySettings.Type.WEB) {
+                textView.setText(proxyInfo.settings.getAddress() + " (WEB)");
+            } else {
+                textView.setText(proxyInfo.settings.getAddress() + ":" + proxyInfo.settings.getPort());
+            }
             currentInfo = proxyInfo;
         }
 
@@ -690,6 +696,15 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
         for (int a = 0, count = proxyList.size(); a < count; a++) {
             final SharedConfig.ProxyInfo proxyInfo = proxyList.get(a);
             if (proxyInfo.checking || SystemClock.elapsedRealtime() - proxyInfo.availableCheckTime < 2 * 60 * 1000) {
+                continue;
+            }
+            if (proxyInfo.settings.getType() == ProxySettings.Type.SINGBOX) {
+                // There is only one in-process sing-box core, so an inactive entry cannot be probed
+                // without tearing down the active one. Its state is reported by the connection state.
+                proxyInfo.checking = false;
+                proxyInfo.availableCheckTime = SystemClock.elapsedRealtime();
+                proxyInfo.ping = 0;
+                proxyInfo.available = !(SharedConfig.currentProxy == proxyInfo && SingBoxCore.isFailed());
                 continue;
             }
             proxyInfo.checking = true;

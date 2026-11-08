@@ -2694,6 +2694,10 @@
     <string name="UseProxySocks5">SOCKS5 Proxy</string>
     <string name="UseProxyTelegram">MTProto Proxy</string>
     <string name="UseProxyWeb">WEB Proxy</string>
+    <string name="UseProxySingBox">Sing-box</string>
+    <string name="UseProxySingBoxHint">sing-box config (JSON)</string>
+    <string name="UseProxySingBoxInfo">Paste a complete sing-box configuration in JSON form. Every outbound type supported by sing-box works, and route/DNS rules are kept as written. The inbound is supplied by the app as a loopback SOCKS5 listener (tag: tg-socks); any inbounds in the pasted config are ignored.</string>
+    <string name="UseProxySingBoxError">Last error</string>
     <string name="UseProxyTelegramError">The proxy you are using is not configured correctly and will be disabled. Please find another one.</string>
     <string name="UseProxySponsor">Proxy sponsor</string>
     <string name="UseProxySponsorInfo">This channel is shown by your proxy server. To remove this channel from your chat list, disable the proxy in Telegram Settings.</string>

@@ -42,6 +42,9 @@ configurations.all {
 }
 
 dependencies {
+    // sing-box core (built by Tools/build-singbox-aar.sh; arm64-v8a only)
+    api files('libs/libbox.aar')
+
     implementation 'androidx.core:core:1.16.0'
     implementation 'androidx.palette:palette:1.0.0'
     implementation 'androidx.exifinterface:exifinterface:1.3.6'

@@ -39,6 +39,7 @@ import org.json.JSONObject;
 import org.telegram.messenger.utils.Choreographer60FpsContent;
 import org.telegram.messenger.voip.VideoCapturerDevice;
 import org.telegram.tgnet.ConnectionsManager;
+import org.telegram.messenger.singbox.SingBoxCore;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.Components.ForegroundDetector;
@@ -442,6 +443,7 @@ public class ApplicationLoader extends Application {
                             @Override
                             public void onAvailable(@NonNull Network network) {
                                 lastKnownNetworkType = -1;
+                                SingBoxCore.onNetworkAvailable();
                             }
 
                             @Override

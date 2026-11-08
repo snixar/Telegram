@@ -79,3 +79,8 @@
 # Use -keep to explicitly keep any other classes shrinking would remove
 #-dontoptimize
 #-dontobfuscate
+# sing-box libbox (gomobile): JNI bindings and the Go runtime must survive R8
+-keep class io.nekohasekai.libbox.** { *; }
+-keep class go.** { *; }
+-dontwarn io.nekohasekai.libbox.**
+-dontwarn go.**

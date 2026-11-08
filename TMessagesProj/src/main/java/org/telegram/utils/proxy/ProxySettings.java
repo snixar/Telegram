@@ -8,6 +8,7 @@ import android.util.Base64;
 import androidx.annotation.NonNull;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.singbox.SingBoxConfig;
 
 import java.io.UnsupportedEncodingException;
 import java.net.IDN;
@@ -27,7 +28,8 @@ public final class ProxySettings {
     public enum Type {
         SOCKS5,
         MTPROTO,
-        WEB
+        WEB,
+        SINGBOX
     }
 
     private final @NonNull Type type;
@@ -47,6 +49,11 @@ public final class ProxySettings {
             user = "";
             password = "";
         } else if (type == Type.MTPROTO) {
+            secret = builder.secret;
+            port = builder.port;
+            user = "";
+            password = "";
+        } else if (type == Type.SINGBOX) {
             secret = builder.secret;
             port = builder.port;
             user = "";
@@ -91,6 +98,9 @@ public final class ProxySettings {
     }
 
     public boolean isValid() {
+        if (type == Type.SINGBOX) {
+            return !TextUtils.isEmpty(secret) && SingBoxConfig.validate(secret) == null;
+        }
         if (TextUtils.isEmpty(address)) {
             return false;
         }
@@ -100,6 +110,9 @@ public final class ProxySettings {
     }
 
     public String getLink() {
+        if (type == Type.SINGBOX) {
+            return secret;
+        }
         StringBuilder url;
         switch (type) {
             case MTPROTO:
@@ -209,6 +222,12 @@ public final class ProxySettings {
             case WEB:
                 editor.putString("proxy_secret", secret);
                 editor.remove("proxy_port");
+                editor.remove("proxy_pass");
+                editor.remove("proxy_user");
+                break;
+            case SINGBOX:
+                editor.putString("proxy_secret", secret);
+                editor.putInt("proxy_port", port);
                 editor.remove("proxy_pass");
                 editor.remove("proxy_user");
                 break;
@@ -523,6 +542,8 @@ public final class ProxySettings {
                 return 1;
             case WEB:
                 return 2;
+            case SINGBOX:
+                return 3;
         }
         return 0;
     }
@@ -535,6 +556,8 @@ public final class ProxySettings {
                 return Type.MTPROTO;
             case 2:
                 return Type.WEB;
+            case 3:
+                return Type.SINGBOX;
         }
         return Type.SOCKS5;
     }
