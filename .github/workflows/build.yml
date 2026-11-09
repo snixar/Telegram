@@ -61,18 +61,26 @@ jobs:
           CGO_LDFLAGS="-Wl,-z,max-page-size=16384" gomobile bind \
             -target=android/arm64 \
             -androidapi 23 \
+            -javapkg io.nekohasekai.libbox \
             -tags "with_quic,with_wireguard,with_utls,with_gvisor,badlinkname,tfogo_checklinkname0" \
             -ldflags "-extldflags=-Wl,-z,max-page-size=16384 -checklinkname=0" \
             -o "$GITHUB_WORKSPACE/TMessagesProj/libs/libbox.aar" \
             ./experimental/libbox
           ls -lh "$GITHUB_WORKSPACE/TMessagesProj/libs/libbox.aar"
+          unzip -l "$GITHUB_WORKSPACE/TMessagesProj/libs/libbox.aar" | head -20
+          unzip -p "$GITHUB_WORKSPACE/TMessagesProj/libs/libbox.aar" classes.jar > /tmp/libbox-classes.jar
+          unzip -l /tmp/libbox-classes.jar | grep -E "Libbox|CommandServer|PlatformInterface" | head -20
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Build APK (arm64)
+      - name: Compile Java (fast check)
         run: |
           chmod +x gradlew
+          ./gradlew :TMessagesProj:compileReleaseJavaWithJavac --no-daemon --stacktrace
+
+      - name: Build APK (arm64)
+        run: |
           ./gradlew :TMessagesProj_App:assembleAfatRelease -PtgAbis=arm64-v8a --no-daemon --stacktrace
 
       - name: Collect APK
