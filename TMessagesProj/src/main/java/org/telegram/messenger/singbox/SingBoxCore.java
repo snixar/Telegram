@@ -296,19 +296,19 @@ public final class SingBoxCore implements CommandServerHandler {
     private SetupOptions buildSetupOptions() {
         final Context context = ApplicationLoader.applicationContext;
         final SetupOptions options = new SetupOptions();
-        options.basePath = context.getFilesDir().getAbsolutePath();
+        options.setBasePath(context.getFilesDir().getAbsolutePath());
         final File working = new File(context.getFilesDir(), "singbox");
         //noinspection ResultOfMethodCallIgnored
         working.mkdirs();
-        options.workingPath = working.getAbsolutePath();
-        options.tempPath = context.getCacheDir().getAbsolutePath();
-        options.logMaxLines = 500;
-        options.debug = false;
-        options.crashReportSource = "Telegram";
-        options.appVersion = BuildVars.BUILD_VERSION_STRING;
-        options.appMarketingVersion = BuildVars.BUILD_VERSION_STRING;
-        options.platformMetadata = "{\"os\":\"Android " + Build.VERSION.RELEASE + "\",\"sdk\":" + Build.VERSION.SDK_INT
-                + ",\"manufacturer\":\"" + Build.MANUFACTURER + "\",\"model\":\"" + Build.MODEL + "\"}";
+        options.setWorkingPath(working.getAbsolutePath());
+        options.setTempPath(context.getCacheDir().getAbsolutePath());
+        options.setLogMaxLines(500);
+        options.setDebug(false);
+        options.setCrashReportSource("Telegram");
+        options.setAppVersion(BuildVars.BUILD_VERSION_STRING);
+        options.setAppMarketingVersion(BuildVars.BUILD_VERSION_STRING);
+        options.setPlatformMetadata("{\"os\":\"Android " + Build.VERSION.RELEASE + "\",\"sdk\":" + Build.VERSION.SDK_INT
+                + ",\"manufacturer\":\"" + Build.MANUFACTURER + "\",\"model\":\"" + Build.MODEL + "\"}");
         return options;
     }
 
