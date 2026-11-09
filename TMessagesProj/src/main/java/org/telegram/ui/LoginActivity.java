@@ -3118,6 +3118,9 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
             settings.allow_app_hash = settings.allow_firebase = PushListenerController.GooglePushListenerServiceProvider.INSTANCE.hasServices();
             if (forceDisableSafetyNet || TextUtils.isEmpty(BuildVars.SAFETYNET_KEY)) {
                 settings.allow_firebase = false;
+                // Re-signed builds cannot pass attestation, so do not advertise any app-side code
+                // delivery either; force the server to use a plain SMS or call.
+                settings.allow_app_hash = false;
             }
 
             ArrayList<TLRPC.TL_auth_authorization> loginTokens = AuthTokensHelper.getSavedLogInTokens();
