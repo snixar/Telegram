@@ -61,7 +61,7 @@ jobs:
           CGO_LDFLAGS="-Wl,-z,max-page-size=16384" gomobile bind \
             -target=android/arm64 \
             -androidapi 23 \
-            -javapkg io.nekohasekai.libbox \
+            -javapkg io.nekohasekai \
             -tags "with_quic,with_wireguard,with_utls,with_gvisor,badlinkname,tfogo_checklinkname0" \
             -ldflags "-extldflags=-Wl,-z,max-page-size=16384 -checklinkname=0" \
             -o "$GITHUB_WORKSPACE/TMessagesProj/libs/libbox.aar" \
@@ -70,6 +70,13 @@ jobs:
           unzip -l "$GITHUB_WORKSPACE/TMessagesProj/libs/libbox.aar" | head -20
           unzip -p "$GITHUB_WORKSPACE/TMessagesProj/libs/libbox.aar" classes.jar > /tmp/libbox-classes.jar
           unzip -l /tmp/libbox-classes.jar | grep -E "Libbox|CommandServer|PlatformInterface" | head -20
+
+      - name: Upload libbox classes (debug)
+        uses: actions/upload-artifact@v4
+        with:
+          name: libbox-classes
+          path: /tmp/libbox-classes.jar
+          if-no-files-found: warn
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
